@@ -1,6 +1,6 @@
 # Image URL to use all building/pushing image targets
-IMG ?= kdex-tech/fngogen:latest
-BINARY ?= fngogen
+IMG ?= kdex-tech/kdex-cli-tools:latest
+BINARY ?= gurl
 
 REPOSITORY ?= 
 # if REPOSITORY is set make sure it ends with a /
@@ -97,11 +97,11 @@ modernizer-fix: ## Run modernizer and perform fixes
 
 .PHONY: build
 build: fmt vet ## Build manager binary.
-	go build -o bin/$(BINARY) cmd/main.go
+	go build -o bin/$(BINARY) gurl/main.go
 
 .PHONY: run
 run: fmt vet ## Run a controller from your host.
-	go run ./cmd/main.go
+	go run ./gurl/main.go
 
 # If you wish to build the manager image targeting other platforms you can use the --platform flag.
 # (i.e. docker build --platform linux/arm64). However, you must enable docker buildKit for it.

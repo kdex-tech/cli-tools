@@ -32,7 +32,7 @@ Format masks:
 example.com
 
 # Add a user and password
-]$ gurl +%s%Susername:password@%H%p%Q%F https://example.com:8080/path?a=1&b=2#section1
+]$ gurl +%Susername:password@%H%p%Q%F https://example.com:8080/path?a=1&b=2#section1
 https://username:password@example.com:8080/path?a=1&b=2#section1
 
 ```
