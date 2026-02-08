@@ -38,7 +38,7 @@ func Test_parseFormat(t *testing.T) {
 				RawQuery: "a=1&b=2",
 				Fragment: "section1",
 			},
-			want: "://",
+			want: "https://",
 		},
 		{
 			name:   "auth",
@@ -185,7 +185,7 @@ func Test_parseFormat(t *testing.T) {
 		},
 		{
 			name:   "all",
-			format: "%s%S%A%H%p%Q%F",
+			format: "%S%A%H%p%Q%F",
 			u: &url.URL{
 				Scheme:   "https",
 				User:     url.UserPassword("user", "pass"),
@@ -198,7 +198,7 @@ func Test_parseFormat(t *testing.T) {
 		},
 		{
 			name:   "without auth",
-			format: "%s%S%H%p%Q%F",
+			format: "%S%H%p%Q%F",
 			u: &url.URL{
 				Scheme:   "https",
 				User:     url.UserPassword("user", "pass"),
@@ -211,7 +211,7 @@ func Test_parseFormat(t *testing.T) {
 		},
 		{
 			name:   "without port",
-			format: "%s%S%H%p%Q%F",
+			format: "%S%H%p%Q%F",
 			u: &url.URL{
 				Scheme:   "https",
 				User:     url.UserPassword("user", "pass"),
@@ -224,7 +224,7 @@ func Test_parseFormat(t *testing.T) {
 		},
 		{
 			name:   "without query",
-			format: "%s%S%H%p%F",
+			format: "%S%H%p%F",
 			u: &url.URL{
 				Scheme:   "https",
 				User:     url.UserPassword("user", "pass"),
@@ -236,7 +236,7 @@ func Test_parseFormat(t *testing.T) {
 		},
 		{
 			name:   "with different scheme",
-			format: "%s%S%H%p%F",
+			format: "http://%H%p%F",
 			u: &url.URL{
 				Scheme:   "ftp",
 				User:     url.UserPassword("user", "pass"),
@@ -244,11 +244,11 @@ func Test_parseFormat(t *testing.T) {
 				Path:     "/index.html",
 				Fragment: "section1",
 			},
-			want: "ftp://example.com/index.html#section1",
+			want: "http://example.com/index.html#section1",
 		},
 		{
 			name:   "with litterals",
-			format: "http%S%H/foo/bar%p%F",
+			format: "%S%H/foo/bar%p%F",
 			u: &url.URL{
 				Scheme:   "https",
 				User:     url.UserPassword("user", "pass"),
@@ -256,7 +256,7 @@ func Test_parseFormat(t *testing.T) {
 				Path:     "/index.html",
 				Fragment: "section1",
 			},
-			want: "http://example.com/foo/bar/index.html#section1",
+			want: "https://example.com/foo/bar/index.html#section1",
 		},
 		{
 			name:   "all parts",
@@ -269,7 +269,19 @@ func Test_parseFormat(t *testing.T) {
 				RawQuery: "a=1&b=2",
 				Fragment: "section1",
 			},
-			want: "https|://|user:pass|user:pass@|user|pass|example.com:8080|example.com|8080|/index.html|a=1&b=2|?a=1&b=2|section1|#section1",
+			want: "https|https://|user:pass|user:pass@|user|pass|example.com:8080|example.com|8080|/index.html|a=1&b=2|?a=1&b=2|section1|#section1",
+		},
+		{
+			name:   "add username and password",
+			format: "%Susername:password@%H%p%Q%F",
+			u: &url.URL{
+				Scheme:   "https",
+				Host:     "example.com:8080",
+				Path:     "/index.html",
+				RawQuery: "a=1&b=2",
+				Fragment: "section1",
+			},
+			want: "https://username:password@example.com:8080/index.html?a=1&b=2#section1",
 		},
 	}
 	for _, tt := range tests {

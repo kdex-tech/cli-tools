@@ -67,6 +67,7 @@ func parseFormat(format string, u *url.URL) string {
 				sb.WriteString(u.Scheme)
 			case 'S':
 				if u.Scheme != "" {
+					sb.WriteString(u.Scheme)
 					sb.WriteString("://")
 				}
 			case 'u':
@@ -95,7 +96,7 @@ func printUsage() {
 	fmt.Fprintf(os.Stderr, "Usage: gurl +<format> <url>\n\n")
 	fmt.Fprintf(os.Stderr, "Format masks:\n")
 	fmt.Fprintf(os.Stderr, "  %%s  scheme (e.g., https)\n")
-	fmt.Fprintf(os.Stderr, "  %%S  scheme delimiter (e.g., ://)\n")
+	fmt.Fprintf(os.Stderr, "  %%S  scheme with delimiter (e.g., https://)\n")
 	fmt.Fprintf(os.Stderr, "  %%a  auth (e.g., user:pass)\n")
 	fmt.Fprintf(os.Stderr, "  %%A  auth with delimiter (e.g., user:pass@)\n")
 	fmt.Fprintf(os.Stderr, "  %%u  username (e.g., user)\n")
