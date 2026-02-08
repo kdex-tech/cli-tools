@@ -19,7 +19,7 @@ COPY gurl/ gurl/
 # was called. For example, if we call make docker-build in a local env which has the Apple Silicon M1 SO
 # the docker BUILDPLATFORM arg will be linux/arm64 when for Apple x86 it will be linux/amd64. Therefore,
 # by leaving it empty we can ensure that the container and binary shipped on it will have the same platform.
-RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -a -o gurl gurl/main.go
+RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -ldflags="-s -w" -a -o gurl-bin gurl/main.go
 
 # Build the manager binary
 FROM alpine:3.19
@@ -27,5 +27,11 @@ FROM alpine:3.19
 RUN apk add --no-cache curl git jq tree
 
 WORKDIR /
+
 # Copy the gurl binary
-COPY --from=builder /workspace/gurl /usr/bin/gurl
+COPY --from=builder /workspace/gurl-bin /usr/local/bin/gurl
+COPY scripts/ /usr/local/bin/
+
+RUN chmod 777 /usr/local/bin/gurl; \
+    chmod 777 /usr/local/bin/git_checkout; \
+    chmod 777 /usr/local/bin/git_push
