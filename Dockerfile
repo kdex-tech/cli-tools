@@ -34,4 +34,6 @@ COPY scripts/ /usr/local/bin/
 
 RUN chmod 777 /usr/local/bin/gurl; \
     chmod 777 /usr/local/bin/git_checkout; \
-    chmod 777 /usr/local/bin/git_push
+    chmod 777 /usr/local/bin/git_push; \
+    chmod 777 /usr/local/bin/patch_source_status; \
+    chmod 777 /usr/local/bin/patch_executable_status

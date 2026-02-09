@@ -15,8 +15,7 @@ git config user.name "${COMMITTER_NAME}"
 git config commit.gpgsign false
 
 # 3. Sanitize variables to create a safe branch name
-SAFE_PATH=$(echo "${FUNCTION_BASEPATH}" | sed 's/\//-/g' | sed 's/^-//')
-BRANCH_NAME="gen/${FUNCTION_NAMESPACE}/${FUNCTION_NAME}-${SAFE_PATH}"
+BRANCH_NAME="gen/${FUNCTION_NAMESPACE}/${FUNCTION_NAME}"
 
 # 4. Check if branch exists on remote, then switch or create
 if git ls-remote --heads origin "${BRANCH_NAME}" | grep -q "${BRANCH_NAME}"; then
@@ -28,7 +27,7 @@ fi
 
 # 5. Create the subdirectory if it doesn't exist
 # We target the specific subdirectory for this function
-TARGET_DIR="${COMMIT_SUB_DIRECTORY}/${FUNCTION_NAMESPACE}/${FUNCTION_NAME}-${SAFE_PATH}"
+TARGET_DIR="${COMMIT_SUB_DIRECTORY}/${FUNCTION_NAMESPACE}/${FUNCTION_NAME}"
 mkdir -p "${TARGET_DIR}"
 
 # 6. Ignore the .env file
