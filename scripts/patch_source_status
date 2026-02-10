@@ -16,9 +16,11 @@ REPOSITORY=$(gurl +%S%H%p ${REPOSITORY})
 DATA=$(cat <<EOF
 {
 	"status": {
-		"state": "StubGenerated",
-		"stubDetails": {
-			"sourcePath": "${REPOSITORY}/src/branch/${BRANCH_NAME}"
+		"state": "SourceAvailable",
+		"source": {
+			"repository": "${REPOSITORY}"
+			"revision": "${BRANCH_NAME}"
+			"path": "${TARGET_DIR}"
 		},
 		"detail": "Source: ${REPOSITORY}/src/branch/${BRANCH_NAME}"
 	}

@@ -10,6 +10,6 @@ git add "${TARGET_DIR}"
 if git diff-index --quiet HEAD; then
   echo "No changes detected for this iteration."
 else
-  git commit -m "Update function: ${FUNCTION_NAME} at ${FUNCTION_BASEPATH}"
+  git commit -m "Update function: ${FUNCTION_HOST}/${FUNCTION_NAME}:${FUNCTION_GENERATION}"
   git push origin "${BRANCH_NAME}"
 fi
