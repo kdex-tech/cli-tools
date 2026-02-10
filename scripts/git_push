@@ -5,6 +5,10 @@ set -e
 cd "${WORKDIR}"
 source .env
 
+pushd "${TARGET_DIR}"
+echo "${FUNCTION_SPEC}" > function.yaml
+popd
+
 # 1. Commit and Push
 git add "${TARGET_DIR}"
 if git diff-index --quiet HEAD; then
