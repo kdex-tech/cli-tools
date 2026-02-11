@@ -5,9 +5,9 @@ set -e
 cd "${WORKDIR}"
 source .env
 
-pushd "${TARGET_DIR}"
+cd "${TARGET_DIR}"
 echo "${FUNCTION_SPEC}" > function.yaml
-popd
+cd -
 
 # 1. Commit and Push
 git add "${TARGET_DIR}"

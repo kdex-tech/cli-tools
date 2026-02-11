@@ -18,8 +18,8 @@ DATA=$(cat <<EOF
 	"status": {
 		"state": "SourceAvailable",
 		"source": {
-			"repository": "${REPOSITORY}"
-			"revision": "${BRANCH_NAME}"
+			"repository": "${REPOSITORY}",
+			"revision": "${BRANCH_NAME}",
 			"path": "${TARGET_DIR}"
 		},
 		"detail": "Source: ${REPOSITORY}/src/branch/${BRANCH_NAME}"
