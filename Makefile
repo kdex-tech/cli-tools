@@ -1,18 +1,10 @@
 # Image URL to use all building/pushing image targets
 IMG ?= kdex-tech/kdex-cli-tools:latest
-BINARY ?= gurl
 
 REPOSITORY ?= 
 # if REPOSITORY is set make sure it ends with a /
 ifneq ($(REPOSITORY),)
 override REPOSITORY := $(REPOSITORY)/
-endif
-
-# Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
-ifeq (,$(shell go env GOBIN))
-GOBIN=$(shell go env GOPATH)/bin
-else
-GOBIN=$(shell go env GOBIN)
 endif
 
 # CONTAINER_TOOL defines the container tool to be used for building images.
@@ -27,7 +19,7 @@ SHELL = /usr/bin/env bash -o pipefail
 .SHELLFLAGS = -ec
 
 .PHONY: all
-all: build
+all: docker-buildx
 
 ##@ General
 
@@ -46,62 +38,7 @@ all: build
 help: ## Display this help.
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
-##@ Development
-
-.PHONY: fmt
-fmt: ## Run go fmt against code.
-	go fmt ./...
-
-.PHONY: vet
-vet: ## Run go vet against code.
-	go vet ./...
-
-.PHONY: test
-TEST_PKGS ?= $(shell go list ./... | grep -v /e2e)
-TEST_ARGS ?=
-
-test: fmt vet ## Run tests.
-ifeq ($(DEBUG),true)
-	dlv test $(TEST_PKGS) --headless --listen=:2345 --api-version=2 -- $(TEST_ARGS)
-else
-	go test $(TEST_PKGS) -coverprofile cover.out $(TEST_ARGS)
-endif
-
-.PHONY: coverage
-coverage: test ## Generate and view test coverage report.
-	@echo "--> Generating coverage report"
-	go tool cover -html=cover.out -o cover.html
-	@echo "--> Coverage report generated at file://$$(pwd)/cover.html"
-
-.PHONY: lint
-lint: golangci-lint ## Run golangci-lint linter
-	$(GOLANGCI_LINT) run
-
-.PHONY: lint-fix
-lint-fix: golangci-lint modernizer-fix ## Run golangci-lint linter and perform fixes
-	$(GOLANGCI_LINT) run --fix
-
-.PHONY: lint-config
-lint-config: golangci-lint ## Verify golangci-lint linter configuration
-	$(GOLANGCI_LINT) config verify
-
-.PHONY: modernizer
-modernizer: ## Run modernizer
-	go run golang.org/x/tools/go/analysis/passes/modernize/cmd/modernize@latest -test ./...
-
-.PHONY: modernizer-fix
-modernizer-fix: ## Run modernizer and perform fixes
-	go run golang.org/x/tools/go/analysis/passes/modernize/cmd/modernize@latest -fix ./...
-
 ##@ Build
-
-.PHONY: build
-build: fmt vet ## Build manager binary.
-	go build -o bin/$(BINARY) gurl/main.go
-
-.PHONY: run
-run: fmt vet ## Run a controller from your host.
-	go run ./gurl/main.go
 
 # If you wish to build the manager image targeting other platforms you can use the --platform flag.
 # (i.e. docker build --platform linux/arm64). However, you must enable docker buildKit for it.
@@ -128,38 +65,3 @@ docker-buildx: ## Build and push docker image for the manager for cross-platform
 	$(CONTAINER_TOOL) buildx inspect kdex-nexus-builder >/dev/null 2>&1 || $(CONTAINER_TOOL) buildx create --name kdex-nexus-builder --use
 	$(CONTAINER_TOOL) buildx build --push --platform=$(PLATFORMS) --tag ${REPOSITORY}${IMG} -f Dockerfile.cross .
 	rm Dockerfile.cross
-
-##@ Dependencies
-
-## Location to install dependencies to
-LOCALBIN ?= $(shell pwd)/bin
-$(LOCALBIN):
-	mkdir -p $(LOCALBIN)
-
-## Tool Binaries
-KUBECTL ?= kubectl
-GOLANGCI_LINT = $(LOCALBIN)/golangci-lint
-
-## Tool Versions
-GOLANGCI_LINT_VERSION ?= v2.7.2
-
-.PHONY: golangci-lint
-golangci-lint: $(GOLANGCI_LINT) ## Download golangci-lint locally if necessary.
-$(GOLANGCI_LINT): $(LOCALBIN)
-	$(call go-install-tool,$(GOLANGCI_LINT),github.com/golangci/golangci-lint/v2/cmd/golangci-lint,$(GOLANGCI_LINT_VERSION))
-
-# go-install-tool will 'go install' any package with custom target and name of binary, if it doesn't exist
-# $1 - target path with name of binary
-# $2 - package url which can be installed
-# $3 - specific version of package
-define go-install-tool
-@[ -f "$(1)-$(3)" ] && [ "$$(readlink -- "$(1)" 2>/dev/null)" = "$(1)-$(3)" ] || { \
-set -e; \
-package=$(2)@$(3) ;\
-echo "Downloading $${package}" ;\
-rm -f $(1) ;\
-GOBIN=$(LOCALBIN) go install $${package} ;\
-mv $(1) $(1)-$(3) ;\
-} ;\
-ln -sf $$(realpath $(1)-$(3)) $(1)
-endef

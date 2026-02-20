@@ -5,7 +5,7 @@ set -e
 cd "${WORKDIR}"
 
 # 1. Clone the repo
-REPOSITORY=$(gurl +%S${GIT_USERNAME}:${GIT_PASSWORD}@%H%p ${GIT_HOST})
+REPOSITORY=$(durl +%S${GIT_USERNAME}:${GIT_PASSWORD}@%H%p ${GIT_HOST})
 git clone "${REPOSITORY}/${GIT_ORG}/${GIT_REPO}" .
 
 # 2. Basic Git Identity (No Signing)

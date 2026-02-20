@@ -11,7 +11,7 @@ source .env
 
 # Remove any authority from the REPOSITORY URL
 REPOSITORY=$(git remote get-url --push origin)
-REPOSITORY=$(gurl +%S%H%p ${REPOSITORY})
+REPOSITORY=$(durl +%S%H%p ${REPOSITORY})
 
 cat <<EOF > /dev/termination-log
 {

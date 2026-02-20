@@ -34,24 +34,6 @@ jobs:
     - name: Clone the code
       uses: actions/checkout@v6
 
-    - name: Setup Go
-      uses: actions/setup-go@v6
-      with:
-        go-version-file: go.mod
-
-    - name: Run Tidy
-      run: go mod tidy
-
-    - name: Run Linter
-      uses: golangci/golangci-lint-action@v9
-      with:
-        version: v2.7.2
-
-    - name: Run Unit Tests
-      run: |
-        go mod tidy
-        make test
-
     - name: Publish Docker Image
       if: ${{ env.PUBLISH == 'true' }}
       uses: ./.github/actions/publish-docker-image
