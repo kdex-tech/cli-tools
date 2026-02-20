@@ -5,8 +5,8 @@ set -e
 cd "${WORKDIR}"
 
 # 1. Clone the repo
-# We use the 'admin' username and the token we generated earlier
-git clone "http://${GIT_USER}:${GIT_TOKEN}@${GIT_HOST}/${GIT_ORG}/${GIT_REPO}" .
+REPOSITORY=$(gurl +%S${GIT_USERNAME}:${GIT_PASSWORD}@%H%p ${GIT_HOST})
+git clone "${REPOSITORY}/${GIT_ORG}/${GIT_REPO}" .
 
 # 2. Basic Git Identity (No Signing)
 git config user.email "${COMMITTER_EMAIL}"

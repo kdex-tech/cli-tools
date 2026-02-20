@@ -94,16 +94,38 @@ func Test_parseFormat(t *testing.T) {
 		},
 		{
 			name:   "domain",
-			format: "%d",
+			format: "%D",
 			u: &url.URL{
 				Scheme:   "https",
 				User:     url.UserPassword("user", "pass"),
-				Host:     "example.com:8080",
+				Host:     "www.example.com:8080",
 				Path:     "/index.html",
 				RawQuery: "a=1&b=2",
 				Fragment: "section1",
 			},
+			want: "www.example.com",
+		},
+		{
+			name:   "bare url with just domain",
+			format: "%D",
+			u: func() *url.URL {
+				url, _ := url.Parse("//example.com")
+				return url
+			}(),
 			want: "example.com",
+		},
+		{
+			name:   "subdomain",
+			format: "%d",
+			u: &url.URL{
+				Scheme:   "https",
+				User:     url.UserPassword("user", "pass"),
+				Host:     "www.example.com:8080",
+				Path:     "/index.html",
+				RawQuery: "a=1&b=2",
+				Fragment: "section1",
+			},
+			want: "www",
 		},
 		{
 			name:   "port",
@@ -260,16 +282,16 @@ func Test_parseFormat(t *testing.T) {
 		},
 		{
 			name:   "all parts",
-			format: "%s|%S|%a|%A|%u|%U|%H|%d|%P|%p|%q|%Q|%f|%F",
+			format: "%s|%S|%a|%A|%u|%U|%H|%D|%d|%P|%p|%q|%Q|%f|%F",
 			u: &url.URL{
 				Scheme:   "https",
 				User:     url.UserPassword("user", "pass"),
-				Host:     "example.com:8080",
+				Host:     "www.example.com:8080",
 				Path:     "/index.html",
 				RawQuery: "a=1&b=2",
 				Fragment: "section1",
 			},
-			want: "https|https://|user:pass|user:pass@|user|pass|example.com:8080|example.com|8080|/index.html|a=1&b=2|?a=1&b=2|section1|#section1",
+			want: "https|https://|user:pass|user:pass@|user|pass|www.example.com:8080|www.example.com|www|8080|/index.html|a=1&b=2|?a=1&b=2|section1|#section1",
 		},
 		{
 			name:   "add username and password",
@@ -282,6 +304,22 @@ func Test_parseFormat(t *testing.T) {
 				Fragment: "section1",
 			},
 			want: "https://username:password@example.com:8080/index.html?a=1&b=2#section1",
+		},
+		{
+			name:   "base path",
+			format: "%b",
+			u: &url.URL{
+				Path: "/foo/bar/index.html",
+			},
+			want: "index.html",
+		},
+		{
+			name:   "base path with trailing slash",
+			format: "%b",
+			u: &url.URL{
+				Path: "/foo/bar/",
+			},
+			want: "bar",
 		},
 	}
 	for _, tt := range tests {

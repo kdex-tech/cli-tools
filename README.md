@@ -8,20 +8,25 @@ Parse URLs from the CLI like a boss.
 Usage: gurl +<format> <url>
 
 Format masks:
-  %s  scheme (e.g., https)
-  %S  scheme with delimiter (e.g., https://)
-  %a  auth (e.g., user:pass)
-  %A  auth with delimiter (e.g., user:pass@)
-  %u  username (e.g., user)
-  %U  password (e.g., pass)
-  %H  host (e.g., example.com:port)
-  %d  domain (e.g., example.com)
-  %P  port (e.g., 8080)
-  %p  path (e.g., /index.html)
-  %q  query (e.g., a=1&b=2)
-  %Q  query with delimiter (e.g., ?a=1&b=2)
-  %f  fragment (e.g., section1)
-  %F  fragment with delimiter (e.g., #section1)
+
+  e.g. given: https://foo:bar@www.example.com:8443/path/to/file.txt?query=value#section1
+
+  %s  scheme                  (gives: https)
+  %S  scheme with delimiter   (gives: https://)
+  %a  auth                    (gives: foo:bar)
+  %A  auth with delimiter     (gives: foo:bar@)
+  %u  username                (gives: foo)
+  %U  password                (gives: bar)
+  %H  host                    (gives: www.example.com:8443)
+  %D  domain                  (gives: www.example.com)
+  %d  subdomain               (gives: www)
+  %P  port                    (gives: 8443)
+  %p  path                    (gives: /path/to/file.txt)
+  %b  base                    (gives: file.txt)
+  %q  query                   (gives: query=value)
+  %Q  query with delimiter    (gives: ?query=value)
+  %f  fragment                (gives: section1)
+  %F  fragment with delimiter (gives: #section1)
 ```
 
 ## Examples

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"path"
 	"strings"
 )
 
@@ -45,8 +46,16 @@ func parseFormat(format string, u *url.URL) string {
 					sb.WriteString(u.User.String())
 					sb.WriteByte('@')
 				}
-			case 'd':
+			case 'D':
 				sb.WriteString(u.Hostname())
+			case 'd':
+				hostname := u.Hostname()
+				parts := strings.Split(hostname, ".")
+				if len(parts) > 2 {
+					sb.WriteString(strings.Join(parts[:len(parts)-2], "."))
+				} else {
+					sb.WriteString("")
+				}
 			case 'f':
 				sb.WriteString(u.Fragment)
 			case 'F':
@@ -56,6 +65,8 @@ func parseFormat(format string, u *url.URL) string {
 				sb.WriteString(u.Host)
 			case 'p':
 				sb.WriteString(u.Path)
+			case 'b':
+				sb.WriteString(path.Base(u.Path))
 			case 'P':
 				sb.WriteString(u.Port())
 			case 'q':
@@ -94,19 +105,23 @@ func parseFormat(format string, u *url.URL) string {
 
 func printUsage() {
 	fmt.Fprintf(os.Stderr, "Usage: gurl +<format> <url>\n\n")
-	fmt.Fprintf(os.Stderr, "Format masks:\n")
-	fmt.Fprintf(os.Stderr, "  %%s  scheme (e.g., https)\n")
-	fmt.Fprintf(os.Stderr, "  %%S  scheme with delimiter (e.g., https://)\n")
-	fmt.Fprintf(os.Stderr, "  %%a  auth (e.g., user:pass)\n")
-	fmt.Fprintf(os.Stderr, "  %%A  auth with delimiter (e.g., user:pass@)\n")
-	fmt.Fprintf(os.Stderr, "  %%u  username (e.g., user)\n")
-	fmt.Fprintf(os.Stderr, "  %%U  password (e.g., pass)\n")
-	fmt.Fprintf(os.Stderr, "  %%H  host (e.g., example.com:port)\n")
-	fmt.Fprintf(os.Stderr, "  %%d  domain (e.g., example.com)\n")
-	fmt.Fprintf(os.Stderr, "  %%P  port (e.g., 8080)\n")
-	fmt.Fprintf(os.Stderr, "  %%p  path (e.g., /index.html)\n")
-	fmt.Fprintf(os.Stderr, "  %%q  query (e.g., a=1&b=2)\n")
-	fmt.Fprintf(os.Stderr, "  %%Q  query with delimiter (e.g., ?a=1&b=2)\n")
-	fmt.Fprintf(os.Stderr, "  %%f  fragment (e.g., section1)\n")
-	fmt.Fprintf(os.Stderr, "  %%F  fragment with delimiter (e.g., #section1)\n")
+	fmt.Fprintf(os.Stderr, "Format masks:\n\n")
+	fmt.Fprintf(os.Stderr, "  e.g. given: https://foo:bar@www.example.com:8443/path/to/file.txt?query=value#section1\n\n")
+	fmt.Fprintf(os.Stderr, "  %%s  scheme                  (gives: https)\n")
+	fmt.Fprintf(os.Stderr, "  %%S  scheme with delimiter   (gives: https://)\n")
+	fmt.Fprintf(os.Stderr, "  %%a  auth                    (gives: foo:bar)\n")
+	fmt.Fprintf(os.Stderr, "  %%A  auth with delimiter     (gives: foo:bar@)\n")
+	fmt.Fprintf(os.Stderr, "  %%u  username                (gives: foo)\n")
+	fmt.Fprintf(os.Stderr, "  %%U  password                (gives: bar)\n")
+	fmt.Fprintf(os.Stderr, "  %%H  host                    (gives: www.example.com:8443)\n")
+	fmt.Fprintf(os.Stderr, "  %%D  domain                  (gives: www.example.com)\n")
+	fmt.Fprintf(os.Stderr, "  %%d  subdomain               (gives: www)\n")
+	fmt.Fprintf(os.Stderr, "  %%P  port                    (gives: 8443)\n")
+	fmt.Fprintf(os.Stderr, "  %%p  path                    (gives: /path/to/file.txt)\n")
+	fmt.Fprintf(os.Stderr, "  %%b  base                    (gives: file.txt)\n")
+	fmt.Fprintf(os.Stderr, "  %%q  query                   (gives: query=value)\n")
+	fmt.Fprintf(os.Stderr, "  %%Q  query with delimiter    (gives: ?query=value)\n")
+	fmt.Fprintf(os.Stderr, "  %%f  fragment                (gives: section1)\n")
+	fmt.Fprintf(os.Stderr, "  %%F  fragment with delimiter (gives: #section1)\n")
+	fmt.Fprintf(os.Stderr, "\n")
 }
