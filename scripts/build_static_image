@@ -4,15 +4,33 @@ set -e
 
 cd "${WORKDIR}"
 
+tar -cf layer.tar .
+
+DIFF_ID=$(sha256sum layer.tar | awk '{print $1}')
+
+gzip -c layer.tar > layer.tar.gz
+
+cat <<EOF > config.json
+{
+    "architecture": "amd64",
+    "os": "linux",
+    "rootfs": {
+        "type": "layers",
+        "diff_ids": ["sha256:$DIFF_ID"]
+    }
+}
+EOF
+
 if [ "${IMAGE_PULL_SECRET}x" != "x" ]; then
     ORAS_ARGS="${ORAS_ARGS} --config ${IMAGE_PULL_SECRET}"
 fi
 
 oras push ${ORAS_ARGS} \
-    --artifact-type application/vnd.oci.image.config.v1+json \
+    --config config.json:application/vnd.oci.image.config.v1+json \
     --export-manifest manifest.json \
     "${IMAGE_URL}" \
-    ./:application/vnd.oci.image.layer.v1.tar+gzip
+    layer.tar.gz:application/vnd.oci.image.layer.v1.tar+gzip \
+    --annotation "io.deis.oras.content.unpack=true"
 
 IMAGE_DIGEST=$(sha256sum manifest.json | awk '{print $1}')
 FULL_REFERENCE="sha256:${IMAGE_DIGEST}"
