@@ -17,6 +17,7 @@ WORKDIR /
 
 COPY scripts/ /usr/local/bin/
 
-RUN chmod 777 /usr/local/bin/git_checkout; \
+RUN chmod 777 /usr/local/bin/build_static_image; \
+    chmod 777 /usr/local/bin/git_checkout; \
     chmod 777 /usr/local/bin/git_push; \
     chmod 777 /usr/local/bin/patch_source_status

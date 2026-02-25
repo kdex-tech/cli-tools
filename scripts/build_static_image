@@ -1,0 +1,25 @@
+#!/bin/sh
+
+set -e
+
+cd "${WORKDIR}"
+
+if [ "${IMAGE_PULL_SECRET}x" != "x" ]; then
+    ORAS_ARGS="${ORAS_ARGS} --config ${IMAGE_PULL_SECRET}"
+fi
+
+oras push ${ORAS_ARGS} \
+    --artifact-type application/vnd.oci.image.config.v1+json \
+    --export-manifest manifest.json \
+    "${IMAGE_URL}" \
+    ./:application/vnd.oci.image.layer.v1.tar+gzip
+
+IMAGE_DIGEST=$(sha256sum manifest.json | awk '{print $1}')
+FULL_REFERENCE="sha256:${IMAGE_DIGEST}"
+
+echo "========== Image Manifest ===================="
+cat manifest.json
+echo -e "\n=============================================="
+echo "Artifact Digest: ${FULL_REFERENCE}"
+
+echo "${FULL_REFERENCE}" > /dev/termination-log
