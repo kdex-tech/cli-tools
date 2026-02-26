@@ -2,9 +2,9 @@
 
 set -e
 
-cd "${WORKDIR}"
+cd "${PACKAGING_DIR}"
 
-tar -cf layer.tar ${PACKAGING_DIR}
+tar -cf layer.tar .
 
 DIFF_ID=$(sha256sum layer.tar | awk '{print $1}')
 
