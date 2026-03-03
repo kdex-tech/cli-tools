@@ -21,16 +21,44 @@ cat <<EOF > config.json
 }
 EOF
 
+# if IMAGE_REGISTRY domain ends with .local, use --plain-http
+
+# if IMAGE_REGISTRY doesn't contain a protocol separator, add it
+case "$IMAGE_REGISTRY" in
+    *://*)
+        ;;
+    *)
+        IMAGE_REGISTRY="//${IMAGE_REGISTRY}"
+        ;;
+esac
+
+REG_DOMAIN=$(durl +%D "${IMAGE_REGISTRY}")
+echo "REG_DOMAIN: ${REG_DOMAIN}"
+case "$REG_DOMAIN" in
+    *.local)
+        ORAS_ARGS="${ORAS_ARGS} --plain-http"
+        ;;
+    *)
+        ;;
+esac
+
+IMAGE_REGISTRY=$(durl +%H "${IMAGE_REGISTRY}")
+
+# if IMAGE_PULL_SECRET exists, use --config
 if [ "${IMAGE_PULL_SECRET}x" != "x" ]; then
     ORAS_ARGS="${ORAS_ARGS} --config ${IMAGE_PULL_SECRET}"
 fi
 
-oras push ${ORAS_ARGS} \
+CMD="oras push ${ORAS_ARGS} \
     --config config.json:application/vnd.oci.image.config.v1+json \
     --export-manifest manifest.json \
-    "${IMAGE_URL}" \
+    ${IMAGE_URL} \
     layer.tar.gz:application/vnd.oci.image.layer.v1.tar+gzip \
-    --annotation "io.deis.oras.content.unpack=true"
+    --annotation io.deis.oras.content.unpack=true"
+
+echo "CMD: ${CMD}"
+
+${CMD}
 
 IMAGE_DIGEST=$(sha256sum manifest.json | awk '{print $1}')
 FULL_REFERENCE="sha256:${IMAGE_DIGEST}"
