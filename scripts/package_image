@@ -14,10 +14,14 @@ DIFF_IDS="\"sha256:$DIFF_ID\""
 IMPORTMAP_LAYER=""
 ARTIFACT_TYPE_ARG=""
 if [ -f "importmap.json" ]; then
-    IMPORTMAP_DIFF_ID=$(sha256sum importmap.json | awk '{print $1}')
+    # Create a proper layer for the importmap to satisfy containerd parity requirements
+    tar -cf importmap.layer.tar importmap.json
+    IMPORTMAP_DIFF_ID=$(sha256sum importmap.layer.tar | awk '{print $1}')
+    gzip -f importmap.layer.tar
+    
     DIFF_IDS="${DIFF_IDS}, \"sha256:$IMPORTMAP_DIFF_ID\""
     ARTIFACT_TYPE_ARG="--artifact-type application/vnd.kdex.importmap+json"
-    IMPORTMAP_LAYER="importmap.json:application/json"
+    IMPORTMAP_LAYER="importmap.layer.tar.gz:application/vnd.oci.image.layer.v1.tar+gzip"
 fi
 
 cat <<EOF > config.json
@@ -45,7 +49,7 @@ esac
 REG_DOMAIN=$(durl +%D "${IMAGE_REGISTRY}")
 echo "REG_DOMAIN: ${REG_DOMAIN}"
 case "$REG_DOMAIN" in
-    *.local)
+    *.local|k3d-registry)
         ORAS_ARGS="${ORAS_ARGS} --plain-http"
         ;;
     *)

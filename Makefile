@@ -71,7 +71,7 @@ test-package-image: ## Test package_image script
 	 export IMAGE_URL=localhost:5000/test:v1; \
 	 ./scripts/package_image
 	@# Verify results
-	@grep "importmap.json:application/json" test-packaging/oras-calls.log || (echo "FAILED: importmap.json not in oras call"; exit 1)
+	@grep "importmap.layer.tar.gz:application/vnd.oci.image.layer.v1.tar+gzip" test-packaging/oras-calls.log || (echo "FAILED: importmap layer not in oras call"; exit 1)
 	@grep "application/vnd.kdex.importmap+json" test-packaging/oras-calls.log || (echo "FAILED: artifact type not in oras call"; exit 1)
 	@echo "Test passed!"
 	@rm -rf test-packaging test-bin manifest.json config.json
