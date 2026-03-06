@@ -4,11 +4,21 @@ set -e
 
 cd "${PACKAGING_DIR}"
 
-tar -cf layer.tar .
+tar -cf layer.tar --exclude=layer.tar .
 
 DIFF_ID=$(sha256sum layer.tar | awk '{print $1}')
 
 gzip -c layer.tar > layer.tar.gz
+
+DIFF_IDS="\"sha256:$DIFF_ID\""
+IMPORTMAP_LAYER=""
+ARTIFACT_TYPE_ARG=""
+if [ -f "importmap.json" ]; then
+    IMPORTMAP_DIFF_ID=$(sha256sum importmap.json | awk '{print $1}')
+    DIFF_IDS="${DIFF_IDS}, \"sha256:$IMPORTMAP_DIFF_ID\""
+    ARTIFACT_TYPE_ARG="--artifact-type application/vnd.kdex.importmap+json"
+    IMPORTMAP_LAYER="importmap.json:application/json"
+fi
 
 cat <<EOF > config.json
 {
@@ -16,7 +26,7 @@ cat <<EOF > config.json
     "os": "linux",
     "rootfs": {
         "type": "layers",
-        "diff_ids": ["sha256:$DIFF_ID"]
+        "diff_ids": [$DIFF_IDS]
     }
 }
 EOF
@@ -50,11 +60,13 @@ if [ "${IMAGE_PULL_SECRET}x" != "x" ]; then
 fi
 
 CMD="oras push ${ORAS_ARGS} \
+    ${ARTIFACT_TYPE_ARG} \
     --config config.json:application/vnd.oci.image.config.v1+json \
     --export-manifest manifest.json \
     ${IMAGE_URL} \
     layer.tar.gz:application/vnd.oci.image.layer.v1.tar+gzip \
-    --annotation io.deis.oras.content.unpack=true"
+    --annotation io.deis.oras.content.unpack=true \
+    ${IMPORTMAP_LAYER}"
 
 echo "CMD: ${CMD}"
 
@@ -65,7 +77,9 @@ FULL_REFERENCE="sha256:${IMAGE_DIGEST}"
 
 echo "========== Image Manifest ===================="
 cat manifest.json
-echo -e "\n=============================================="
+printf "\n==============================================\n"
 echo "Artifact Digest: ${FULL_REFERENCE}"
 
-echo "${FULL_REFERENCE}" > /dev/termination-log
+if [ -w /dev/termination-log ]; then
+    echo "${FULL_REFERENCE}" > /dev/termination-log
+fi

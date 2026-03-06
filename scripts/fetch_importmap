@@ -1,0 +1,23 @@
+#!/bin/sh
+
+set -e
+
+#
+# This script is an example of pulling the importmap.json layer from our
+# internalpackagereferences image
+#
+
+# BY DIGEST OR TAG
+DIGEST_OR_TAG="sha256:50c3c12102a0788cc4c99cdac1dbdb5de27f49c357ff78b3efec29d5f2f95314" # "1"
+
+REGISTRY="k3d-registry:5000"
+REPO="sim-host/packages"
+BASE_URL="http://$REGISTRY/v2/$REPO"
+
+# 1. Get manifest using tag
+# 2. Extract the json layer digest
+# 3. Fetch that blob
+curl -s -L -H "Accept: application/vnd.oci.image.manifest.v1+json" \
+  "$BASE_URL/manifests/$DIGEST_OR_TAG" | \
+  jq -r '.layers[] | select(.mediaType=="application/json") | .digest' | \
+  xargs -I {} curl -s -L "$BASE_URL/blobs/{}"

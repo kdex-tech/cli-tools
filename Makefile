@@ -46,8 +46,35 @@ help: ## Display this help.
 ##@ Build
 
 .PHONY: test
-test:
-	@echo "No tests to run for cli tools"
+test: test-package-image ## Run all tests
+
+.PHONY: test-package-image
+test-package-image: ## Test package_image script
+	@echo "Testing package_image script..."
+	@mkdir -p test-packaging
+	@echo '{"import":"map"}' > test-packaging/importmap.json
+	@echo "some data" > test-packaging/file.txt
+	@# Mock durl
+	@mkdir -p test-bin
+	@echo '#!/bin/sh' > test-bin/durl
+	@echo 'case "$$1" in +%D) echo "localhost";; +%H) echo "localhost:5000";; *) echo "unknown";; esac' >> test-bin/durl
+	@chmod +x test-bin/durl
+	@# Mock oras
+	@echo '#!/bin/sh' > test-bin/oras
+	@echo 'echo "ORAS CALLED WITH: $$@" > oras-calls.log' >> test-bin/oras
+	@echo 'echo "{\"layers\":[{\"mediaType\":\"application/json\",\"digest\":\"sha256:123\"}]}" > manifest.json' >> test-bin/oras
+	@chmod +x test-bin/oras
+	@# Run script
+	@export PATH=$$(pwd)/test-bin:$$PATH; \
+	 export PACKAGING_DIR=test-packaging; \
+	 export IMAGE_REGISTRY=localhost:5000; \
+	 export IMAGE_URL=localhost:5000/test:v1; \
+	 ./scripts/package_image
+	@# Verify results
+	@grep "importmap.json:application/json" test-packaging/oras-calls.log || (echo "FAILED: importmap.json not in oras call"; exit 1)
+	@grep "application/vnd.kdex.importmap+json" test-packaging/oras-calls.log || (echo "FAILED: artifact type not in oras call"; exit 1)
+	@echo "Test passed!"
+	@rm -rf test-packaging test-bin manifest.json config.json
 
 # If you wish to build the manager image targeting other platforms you can use the --platform flag.
 # (i.e. docker build --platform linux/arm64). However, you must enable docker buildKit for it.
