@@ -1,6 +1,6 @@
 FROM alpine:3.19
 
-RUN apk add --no-cache bind-tools curl git jq tree; \
+RUN apk add --no-cache bash bind-tools curl git jq tree; \
     curl -sSL https://raw.githubusercontent.com/rotty3000/durl/main/scripts/install.sh | sh
 
 RUN OS="$(uname -s | tr A-Z a-z)"; \
