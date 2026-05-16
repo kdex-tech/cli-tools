@@ -4,7 +4,7 @@ RUN apk add --no-cache bash bind-tools coreutils curl git jq kubectl openssl tre
     curl -sSL https://raw.githubusercontent.com/rotty3000/durl/main/scripts/install.sh | sh
 
 RUN OS="$(uname -s | tr A-Z a-z)"; \
-    ARCH=$(uname -m | sed -e 's/x86_64/amd64/g'); \
+    ARCH=$(uname -m | sed -e 's/x86_64/amd64/g' -e 's/aarch64/arm64/g'); \
     VERSION="1.3.0"; \
     curl -LO "https://github.com/oras-project/oras/releases/download/v${VERSION}/oras_${VERSION}_${OS}_${ARCH}.tar.gz"; \
     mkdir -p oras-install/; \
