@@ -2,6 +2,12 @@
 
 set -e
 
+# Same safe.directory exemption as git_checkout — each init container has
+# its own /tmp so we must set it again here. See git_checkout for the
+# rationale.
+export GIT_CONFIG_GLOBAL="${GIT_CONFIG_GLOBAL:-/tmp/codegen-gitconfig}"
+printf '[safe]\n\tdirectory = *\n' > "${GIT_CONFIG_GLOBAL}"
+
 cd "${WORKDIR}"
 source .env
 

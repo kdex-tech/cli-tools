@@ -2,6 +2,19 @@
 
 set -e
 
+# host-manager mounts WORKDIR as an EmptyDir owned by root:root when the
+# pod spec omits fsGroup. The clone runs as a non-root user and produces
+# .git/ owned by that user, but git's safe.directory check (CVE-2022-24765
+# mitigation, default in git 2.35.2+) refuses to operate on a repo whose
+# work-tree root is owned by a different UID than the current user. Every
+# command after the clone then fails with the misleading "fatal: not in a
+# git directory". The mount is ephemeral and pod-private, so a wildcard
+# exception is safe. Same stanza in git_push and patch_source_status so
+# the later init containers (which inherit nothing from this one's HOME)
+# read the same config. See https://github.com/kdex-tech/cli-tools/issues/1.
+export GIT_CONFIG_GLOBAL="${GIT_CONFIG_GLOBAL:-/tmp/codegen-gitconfig}"
+printf '[safe]\n\tdirectory = *\n' > "${GIT_CONFIG_GLOBAL}"
+
 cd "${WORKDIR}"
 
 # 1. Clone the repo
