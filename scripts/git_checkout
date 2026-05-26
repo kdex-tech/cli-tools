@@ -38,9 +38,20 @@ else
   git checkout -b "${BRANCH_NAME}"
 fi
 
-# 5. Create the subdirectory if it doesn't exist
-# We target the specific subdirectory for this function
-TARGET_DIR="${COMMIT_SUB_DIRECTORY}/${FUNCTION_HOST}/${FUNCTION_NAME}"
+# 5. Create the subdirectory if it doesn't exist.
+# When SOURCE_PATH is set (forwarded by host-manager v0.2.74+ when the
+# function CR has spec.origin.source.path populated), write into that
+# path so codegen output lands in the developer's chosen layout.
+# Strip a leading "./" so SOURCE_PATH="./functions/foo" maps to
+# "functions/foo" relative to the repo root.
+# Falls back to the canonical convention for pure codegen mode (where
+# spec.origin.source is unset and the function repo has no
+# pre-existing layout).
+if [ -n "${SOURCE_PATH:-}" ]; then
+  TARGET_DIR="${SOURCE_PATH#./}"
+else
+  TARGET_DIR="${COMMIT_SUB_DIRECTORY}/${FUNCTION_HOST}/${FUNCTION_NAME}"
+fi
 mkdir -p "${TARGET_DIR}"
 
 # 6. Ignore the .env file
