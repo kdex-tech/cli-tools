@@ -13,6 +13,11 @@ on:
     paths:
     - "**"
     - "!docs/**"
+  # Manual fallback: if the push/tag triggers don't dispatch (we hit this
+  # silently with v0.3.13 — GitHub registered the PushEvent but didn't
+  # fire the workflow), use `gh workflow run CI -R kdex-tech/cli-tools
+  # --ref <tag-or-branch>` to force a build/publish from any ref.
+  workflow_dispatch:
 
 env:
   LC_ALL: en_US.UTF-8
