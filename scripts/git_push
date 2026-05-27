@@ -15,14 +15,23 @@ cd "${TARGET_DIR}"
 echo "${FUNCTION_SPEC}" > function.yaml
 cd -
 
-# 1. Commit and Push
+# 1. Commit (if there are changes) and push.
+# Push uses --force-with-lease because git_checkout (v0.3.16+) rebases the
+# gen branch onto SOURCE_REVISION, which rewrites history and makes a
+# plain fast-forward push impossible. force-with-lease is safe: it
+# refuses to push if the remote tip changed since our last fetch, so a
+# concurrent operator-authored commit can't be clobbered silently.
+# The push runs unconditionally — even when there are no working-tree
+# changes from this codegen iteration, the LOCAL branch has been
+# rebased and the REMOTE branch needs to catch up, or the next run will
+# again find a divergent remote and fail the same way.
 git add "${TARGET_DIR}"
 if git diff-index --quiet HEAD; then
-  echo "No changes detected for this iteration."
+  echo "No working-tree changes detected for this iteration."
 else
   git commit -m "Update function: ${FUNCTION_HOST}/${FUNCTION_NAME}:${FUNCTION_GENERATION}"
-  git push origin "${BRANCH_NAME}"
 fi
+git push --force-with-lease origin "${BRANCH_NAME}"
 
 # 2. Capture the current HEAD SHA of the gen branch so patch_source_status
 # can report it to host-manager. host-manager pins the kpack Image to this
