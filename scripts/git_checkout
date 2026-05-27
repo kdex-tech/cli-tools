@@ -31,9 +31,35 @@ git config commit.gpgsign false
 BRANCH_NAME="gen/${FUNCTION_HOST}/${FUNCTION_NAME}"
 
 # 4. Check if branch exists on remote, then switch or create
+SOURCE_REVISION="${SOURCE_REVISION:-main}"
 if git ls-remote --heads origin "${BRANCH_NAME}" | grep -q "${BRANCH_NAME}"; then
   git fetch origin "${BRANCH_NAME}"
   git checkout "${BRANCH_NAME}"
+
+  # 4b. Rebase the existing gen branch onto SOURCE_REVISION so MR diffs
+  # stay scoped to what the bot actually authored. Without this the gen
+  # branch lags behind the source revision and the eventual review MR
+  # shows a wall of unrelated work as deletions in the diff. See the
+  # gen-branch lifecycle design spec at
+  # docs/superpowers/specs/2026-05-26-gen-branch-lifecycle.md (in the
+  # consumer repo or multi-modal-store).
+  #
+  # Aborts on conflict (exit 2 distinguishes from other errors). The
+  # most likely cause is a hand-edit of a fngogen-generated file on the
+  # source revision (api/*.gen.go, cmd/main.go), which we can't
+  # auto-resolve. Operator recovery options are printed below.
+  git fetch origin "${SOURCE_REVISION}"
+  if ! git rebase "origin/${SOURCE_REVISION}"; then
+    echo "FATAL: rebase ${BRANCH_NAME} onto origin/${SOURCE_REVISION} produced conflicts." >&2
+    echo "Most likely cause: a fngogen-generated file was hand-edited on ${SOURCE_REVISION}." >&2
+    echo "Recovery options:" >&2
+    echo "  1. Revert the hand-edit on ${SOURCE_REVISION} and let the bot retry on next reconcile." >&2
+    echo "  2. Rebase the gen branch manually + push, then trigger another regen." >&2
+    echo "  3. Delete the gen branch (git push origin :${BRANCH_NAME}) AND bump a DEPLOY_NONCE on" >&2
+    echo "     the KDexFunction to spawn a first-regen fresh branch from current ${SOURCE_REVISION}." >&2
+    git rebase --abort
+    exit 2
+  fi
 else
   git checkout -b "${BRANCH_NAME}"
 fi
