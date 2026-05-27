@@ -23,3 +23,13 @@ else
   git commit -m "Update function: ${FUNCTION_HOST}/${FUNCTION_NAME}:${FUNCTION_GENERATION}"
   git push origin "${BRANCH_NAME}"
 fi
+
+# 2. Capture the current HEAD SHA of the gen branch so patch_source_status
+# can report it to host-manager. host-manager pins the kpack Image to this
+# SHA, which stops kpack's SourceResolver from polling the branch HEAD and
+# rebuilding on every unrelated push (monorepo "noisy neighbor"). Written
+# unconditionally — even when no commit was made this iteration the SHA is
+# still the gen branch tip, which is what we want to pin to. See
+# kdex-tech/host-manager#38.
+HEAD_SHA=$(git rev-parse HEAD)
+echo "HEAD_SHA=${HEAD_SHA}" >> .env

@@ -19,10 +19,19 @@ source .env
 REPOSITORY=$(git remote get-url --push origin)
 REPOSITORY=$(durl +%S%H%p ${REPOSITORY})
 
+# Emit the gen-branch HEAD SHA (captured by git_push) as the revision, not
+# the branch name. host-manager pins the kpack Image to this SHA so kpack's
+# SourceResolver stops polling the branch HEAD and only rebuilds on
+# intentional re-pins. Fall back to BRANCH_NAME for older host-manager
+# versions that don't yet honor status.source.revision over spec — they'll
+# behave the same as before (branch-tracking). See
+# kdex-tech/host-manager#38.
+REVISION="${HEAD_SHA:-${BRANCH_NAME}}"
+
 cat <<EOF > /dev/termination-log
 {
 	"repository": "${REPOSITORY}",
-	"revision": "${BRANCH_NAME}",
+	"revision": "${REVISION}",
 	"path": "${TARGET_DIR}"
 }
 EOF
